@@ -52,7 +52,7 @@ public class PlayerRepositoryDB implements IPlayerRepository {
             Transaction transaction = session.beginTransaction();
 
             transaction.commit();
-           return 0;
+           return 1;
         }
     }
 
