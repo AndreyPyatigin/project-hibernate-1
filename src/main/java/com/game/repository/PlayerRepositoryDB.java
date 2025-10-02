@@ -48,7 +48,12 @@ public class PlayerRepositoryDB implements IPlayerRepository {
 
     @Override
     public int getAllCount() {
-        return 0;
+        try(Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+
+            transaction.commit();
+           return 0;
+        }
     }
 
     @Override
