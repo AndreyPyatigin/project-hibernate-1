@@ -7,9 +7,12 @@ import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hibernate.query.NativeQuery;
+
 import org.springframework.stereotype.Repository;
 
 import jakarta.annotation.PreDestroy;
+
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
@@ -20,11 +23,12 @@ public class PlayerRepositoryDB implements IPlayerRepository {
 
     public PlayerRepositoryDB() {
         Properties properties = new Properties();
-        properties.put(Environment.DRIVER, "com.mysql.jdbc.Driver");
-        properties.put(Environment.URL, "jdbc:mysql://localhost:3306/rpg");
+        properties.put(Environment.DRIVER, "com.p6spy.engine.spy.P6SpyDriver");
+        properties.put(Environment.URL, "jdbc:p6spy:mysql://localhost:3306/rpg");
         properties.put(Environment.USER, "root");
         properties.put(Environment.PASS, "my-secret-pw");
         properties.put(Environment.HBM2DDL_AUTO, "update");
+
         sessionFactory = new Configuration()
                 .setProperties(properties)
                 .addAnnotatedClass(com.game.entity.Player.class)
@@ -34,7 +38,7 @@ public class PlayerRepositoryDB implements IPlayerRepository {
 
     @Override
     public List<Player> getAll(int pageNumber, int pageSize) {
-        try(Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
             NativeQuery<Player> nativeQuery = session.createNativeQuery("select * from rpg.player", Player.class);
             nativeQuery.setFirstResult(pageNumber);
@@ -48,36 +52,54 @@ public class PlayerRepositoryDB implements IPlayerRepository {
 
     @Override
     public int getAllCount() {
-        try(Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
-
+            int singleResult = (int) session.createNamedQuery("player_getAllCount").getSingleResult();
             transaction.commit();
-           return 1;
+            return singleResult;
         }
     }
 
     @Override
     public Player save(Player player) {
-        return null;
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            Long id = (Long) session.save(player);
+            transaction.commit();
+            player.setId(id);
+            return player;
+        }
     }
 
     @Override
     public Player update(Player player) {
-        return null;
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            Player mergePlayer = (Player) session.merge(player);
+            transaction.commit();
+            return mergePlayer;
+        }
     }
 
     @Override
     public Optional<Player> findById(long id) {
-        return Optional.empty();
+        try (Session session = sessionFactory.openSession()) {
+            Player player = session.get(Player.class, id);
+            return Optional.ofNullable(player);
+        }
     }
 
     @Override
     public void delete(Player player) {
-
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            session.delete(player);
+            transaction.commit();
+        }
     }
 
     @PreDestroy
     public void beforeStop() {
-
+        sessionFactory.close();
     }
 }
