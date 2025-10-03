@@ -8,6 +8,7 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hibernate.query.NativeQuery;
 
+import org.hibernate.query.Query;
 import org.springframework.stereotype.Repository;
 
 import jakarta.annotation.PreDestroy;
@@ -54,9 +55,9 @@ public class PlayerRepositoryDB implements IPlayerRepository {
     public int getAllCount() {
         try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
-            int singleResult = (int) session.createNamedQuery("player_getAllCount").getSingleResult();
+            Query<Long> playerGetAllCount = session.createNamedQuery("Player_getAllCount", Long.class);
             transaction.commit();
-            return singleResult;
+            return Math.toIntExact(playerGetAllCount.uniqueResult());
         }
     }
 
