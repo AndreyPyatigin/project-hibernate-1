@@ -41,7 +41,7 @@ public class PlayerRepositoryDB implements IPlayerRepository {
         try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
             NativeQuery<Player> nativeQuery = session.createNativeQuery("select * from rpg.player", Player.class);
-            nativeQuery.setFirstResult(pageNumber);
+            nativeQuery.setFirstResult(pageNumber*pageSize);
             nativeQuery.setMaxResults(pageSize);
             List<Player> resultList = nativeQuery.getResultList();
             transaction.commit();
